@@ -59,14 +59,28 @@
       <button id="getProfileButton">Get Profile</button>
       <div id="profileInfo"></div>
 
+      <h1>Update Profile</h1>
+      <input type="text" id="updateUsername" placeholder="New Username" />
+      <button id="updateProfileButton">Update Profile</button>
+
+      <h1>Reset Password</h1>
+      <input type="password" id="resetPassword" placeholder="New Password" />
+      <button id="resetPasswordButton">Reset Password</button>
+
       <h1>Logout</h1>
       <button id="logoutButton">Logout</button>
+
+      <h1>Timer: <span id="timerDisplay">60</span> seconds</h1>
+      <h1>Score: <span id="scoreDisplay">0</span></h1>
 
       <h1>Crossword Puzzle</h1>
       <div id="crosswordGrid"></div>
       <!-- Grid for crossword will be rendered here -->
+      <h1>Get Hint</h1>
+      <button id="getHintButton">Get Hint</button>
+      <p id="hintDisplay" style="color: blue"></p>
     </div>
-
+    <div id="errorMessage" style="color: red"></div>
     <script src="script.js"></script>
   </body>
 </html>

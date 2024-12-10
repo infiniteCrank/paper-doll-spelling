@@ -38,8 +38,16 @@ router.post('/login', async (req, res) => {
 });
 
 // Protected route to get user profile
-router.get('/profile', authenticateToken, (req, res) => {
-    res.json({ id: req.user.id, username: req.user.username });
+router.get('/profile', authenticateToken, async (req, res) => {
+    const user = await User.findById(req.user.id).select('-password'); // Exclude password
+    res.json(user);
+});
+
+// Update user profile
+router.put('/profile', authenticateToken, async (req, res) => {
+    const { username } = req.body;
+    const user = await User.findByIdAndUpdate(req.user.id, { username: username }, { new: true });
+    res.json(user);
 });
 
 // Refresh token route
@@ -58,6 +66,15 @@ router.post('/token', (req, res) => {
 router.post('/logout', (req, res) => {
     res.clearCookie('refreshToken');
     res.sendStatus(204);
+});
+
+// Reset Password
+router.post('/reset-password', authenticateToken, async (req, res) => {
+    const { newPassword } = req.body;
+    const hashedPassword = await bcrypt.hash(newPassword, 10); // Hash the new password
+
+    await User.findByIdAndUpdate(req.user.id, { password: hashedPassword });
+    res.send('Password reset successfully.');
 });
 
 module.exports = router;

@@ -9,7 +9,9 @@ $('#registerButton').click(function() {
             alert('Registration successful!');
         })
         .fail(function(err) {
-            alert('Registration failed: ' + err.responseText);
+            //alert('Registration failed: ' + err.responseText);
+            $('#errorMessage').text('');
+            $('#errorMessage').text('Error: ' + err.responseText); // Update the error display area
         });
 });
 
@@ -23,7 +25,9 @@ $('#loginButton').click(function() {
             localStorage.setItem('jwt', data.accessToken); // Store access token in local storage
         })
         .fail(function(err) {
-            alert('Login failed: ' + err.responseText);
+            //alert('Login failed: ' + err.responseText);
+            $('#errorMessage').text('');
+            $('#errorMessage').text('Error: ' + err.responseText); // Update the error display area
         });
 });
 
@@ -45,8 +49,10 @@ $('#getProfileButton').click(function() {
             $('#profileInfo').html(`<p>ID: ${data.id}</p><p>Username: ${data.username}</p>`);
         },
         error: function(err) {
-            alert('Failed to fetch profile: ' + err.responseText);
+            //alert('Failed to fetch profile: ' + err.responseText);
             localStorage.removeItem('jwt'); // Clear JWT if unauthorized
+            $('#errorMessage').text('');
+            $('#errorMessage').text('Error: ' + err.responseText); // Update the error display area
         }
     });
 });
@@ -62,18 +68,83 @@ $('#logoutButton').click(function() {
     });
 });
 
+$('#getHintButton').click(function() {
+    const selectedPuzzle = puzzlesSets[currentPuzzlesIndex][0]; // Adjust logic to select the right puzzle
+    $('#hintDisplay').text(selectedPuzzle.hint); // Display the hint in the paragraph
+});
+
+// Update user profile
+$('#updateProfileButton').click(function() {
+    const newUsername = $('#updateUsername').val();
+    const token = localStorage.getItem('jwt');
+    
+    $.ajax({
+        url: `${API_URL}/profile`,
+        type: 'PUT',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        data: { username: newUsername },
+        success: function(data) {
+            alert('Profile updated: ' + data.username);
+        },
+        error: function(err) {
+            alert('Failed to update profile: ' + err.responseText);
+        }
+    });
+});
+
+// Reset user password
+$('#resetPasswordButton').click(function() {
+    const newPassword = $('#resetPassword').val();
+    const token = localStorage.getItem('jwt');
+    
+    $.ajax({
+        url: `${API_URL}/reset-password`,
+        type: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        data: { newPassword: newPassword },
+        success: function() {
+            alert('Password has been reset successfully.');
+        },
+        error: function(err) {
+            alert('Failed to reset password: ' + err.responseText);
+        }
+    });
+});
+
+let timer = 60; // Starting time
+const timerDisplay = $('#timerDisplay');
+
+function startTimer() {
+    const interval = setInterval(() => {
+        if (timer > 0) {
+            timer -= 1;
+            timerDisplay.text(timer);
+        } else {
+            clearInterval(interval);
+            alert('Time is up!');
+            // Optionally handle the end of the game
+        }
+    }, 1000);
+}
+
+let score = 0;
+
+function updateScoreDisplay() {
+    $('#scoreDisplay').text(score);
+}
+
 // Crossword Puzzles
 const puzzlesSets = [
     [
-        { word: 'CAT', position: { x: 0, y: 0 }, direction: 'horizontal' },
-        { word: 'DOG', position: { x: 0, y: 1 }, direction: 'vertical' },
-        { word: 'FISH', position: { x: 1, y: 1 }, direction: 'horizontal' }
+        { word: 'CAT', hint: 'A small domesticated carnivorous mammal', position: { x: 0, y: 0 }, direction: 'horizontal' },
+        { word: 'DOG', hint: 'A domesticated carnivorous mammal that typically has a long snout', position: { x: 0, y: 1 }, direction: 'vertical' },
+        { word: 'FISH', hint: 'A limbless cold-blooded vertebrate animal', position: { x: 1, y: 1 }, direction: 'horizontal' }
     ],
-    [
-        { word: 'CAR', position: { x: 3, y: 0 }, direction: 'horizontal' },
-        { word: 'BIRD', position: { x: 3, y: 1 }, direction: 'vertical' },
-        { word: 'BEAR', position: { x: 5, y: 1 }, direction: 'horizontal' }
-    ]
+    // Other puzzles...
 ];
 
 const grid = Array.from({ length: 10 }, () => Array(10).fill(''));
@@ -116,6 +187,7 @@ function renderGrid() {
 function startCrosswordGame() {
     fillGridWithWords(grid, puzzlesSets[currentPuzzlesIndex]); // Fill grid with the current puzzle set
     renderGrid(); // Render the crossword grid
+    startTimer();
 }
 
 $(document).ready(function() {
