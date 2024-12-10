@@ -1,0 +1,16 @@
+{
+  "name": "paper-doll-spelling",
+  "version": "1.0.0",
+  "description": "a game that helps kids with their spelling words and earn paper dolls as rewards",
+  "main": "index.js",
+  "scripts": {
+    "run": "http-server .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "phaser": "^3.87.0"
+  }
+}
