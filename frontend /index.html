@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossword Game with Auth</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        input { width: 100%; margin: 10px 0; padding: 10px; }
+        button { width: 100%; padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Register</h1>
+    <input type="text" id="registerUsername" placeholder="Username">
+    <input type="password" id="registerPassword" placeholder="Password">
+    <button id="registerButton">Register</button>
+    
+    <h1>Login</h1>
+    <input type="text" id="loginUsername" placeholder="Username">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button id="loginButton">Login</button>
+
+    <h1>User Profile</h1>
+    <button id="getProfileButton">Get Profile</button>
+    <div id="profileInfo"></div>
+
+    <h1>Logout</h1>
+    <button id="logoutButton">Logout</button>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:5000/api/auth';
+
+    // Handle user registration
+    $('#registerButton').click(function() {
+        const username = $('#registerUsername').val();
+        const password = $('#registerPassword').val();
+        $.post(`${API_URL}/register`, { username, password })
+            .done(function(response) {
+                alert('Registration successful!');
+            })
+            .fail(function(err) {
+                alert('Registration failed: ' + err.responseText);
+            });
+    });
+
+    // Handle user login
+    $('#loginButton').click(function() {
+        const username = $('#loginUsername').val();
+        const password = $('#loginPassword').val();
+        $.post(`${API_URL}/login`, { username, password })
+            .done(function(data) {
+                alert('Login successful! Token: ' + data.accessToken);
+                localStorage.setItem('jwt', data.accessToken); // Store access token in local storage
+            })
+            .fail(function(err) {
+                alert('Login failed: ' + err.responseText);
+            });
+    });
+
+    // Handle fetching the user profile
+    $('#getProfileButton').click(function() {
+        const token = localStorage.getItem('jwt');
+        if (!token) {
+            alert('Please log in first.');
+            return;
+        }
+        
+        $.ajax({
+            url: `${API_URL}/profile`,
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token // Include JWT in headers
+            },
+            success: function(data) {
+                $('#profileInfo').html(`<p>ID: ${data.id}</p><p>Username: ${data.username}</p>`);
+            },
+            error: function(err) {
+                alert('Failed to fetch profile: ' + err.responseText);
+                localStorage.removeItem('jwt'); // Clear JWT if unauthorized
+            }
+        });
+    });
+
+    // Handle user logout
+    $('#logoutButton').click(function() {
+        $.post(`${API_URL}/logout`, {}, function() {
+            alert('Logged out successfully!');
+            localStorage.removeItem('jwt'); // Remove access token from local storage
+            $('#profileInfo').html(''); // Clear profile info
+        }).fail(function(err) {
+            alert('Failed to log out: ' + err.responseText);
+        });
+    });
+</script>
+
+</body>
+</html>
