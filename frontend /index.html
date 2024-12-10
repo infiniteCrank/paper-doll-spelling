@@ -28,11 +28,18 @@
         color: white;
         border: none;
         border-radius: 5px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
       }
       #crosswordGrid {
         margin-top: 20px;
         display: flex;
         flex-direction: column;
+      }
+      .row {
+        display: flex;
       }
       .cell {
         width: 40px;
@@ -40,6 +47,10 @@
         border: 1px solid #ccc;
         text-align: center;
         line-height: 40px;
+        font-size: 16px;
+      }
+      .cell.empty {
+        background-color: #f9f9f9;
       }
     </style>
   </head>
@@ -70,15 +81,14 @@
       <h1>Logout</h1>
       <button id="logoutButton">Logout</button>
 
-      <h1>Timer: <span id="timerDisplay">60</span> seconds</h1>
-      <h1>Score: <span id="scoreDisplay">0</span></h1>
-
       <h1>Crossword Puzzle</h1>
       <div id="crosswordGrid"></div>
       <!-- Grid for crossword will be rendered here -->
       <h1>Get Hint</h1>
       <button id="getHintButton">Get Hint</button>
       <p id="hintDisplay" style="color: blue"></p>
+      <h1>Timer: <span id="timerDisplay">60</span> seconds</h1>
+      <h1>Score: <span id="scoreDisplay">0</span></h1>
     </div>
     <div id="errorMessage" style="color: red"></div>
     <script src="script.js"></script>
