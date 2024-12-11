@@ -15,9 +15,6 @@ const config = {
     }
 };
 
-const game = new Phaser.Game(config);
-
-let currentPuzzlesIndex = 0; // Start with the first set of puzzles
 const puzzlesSets = [
     [
         { word: 'CAT', position: { x: 0, y: 0 }, direction: 'horizontal', hint: 'A small domesticated carnivorous mammal' },
@@ -32,10 +29,63 @@ const puzzlesSets = [
 ];
 
 const grid = Array.from({ length: 10 }, () => Array(10).fill("")); // Create a 10x10 grid
+let currentPuzzlesIndex = 0; // Start with the first set of puzzles
 let wordInputs = [];
+let score = 0; // Player's score
+let timer = 60; // Countdown timer in seconds
+let timerText; // Reference to the timer display
+let correctSound;
+let incorrectSound;
+
 
 function preload() {
-  // Load assets if needed
+    this.load.image('rainbow', 'path_to_rainbow_particle_image.png'); // Load rainbow particle image
+    this.load.image('explosion', 'path_to_explosion_particle_image.png'); // Load explosion particle image
+    this.load.audio('correctSound', 'path_to_correct_sound.mp3'); // Load sound for correct guess
+    this.load.audio('incorrectSound', 'path_to_incorrect_sound.mp3'); // Load sound for incorrect guess
+}
+
+// In the create function, replace the direct call to render
+function create() {
+    loadPuzzles(currentPuzzlesIndex);
+    loadProgress(); // Load any saved progress upon creation
+    correctSound = this.sound.add('correctSound'); // Add correct sound
+    incorrectSound = this.sound.add('incorrectSound'); // Add incorrect sound
+    
+    // Add a button to switch puzzle sets
+    const switchButton = this.add.text(650, 50, 'Switch Puzzle', { font: '20px Arial', fill: '#0000FF' })
+        .setInteractive()
+        .on('pointerdown', () => {
+            currentPuzzlesIndex = (currentPuzzlesIndex + 1) % puzzlesSets.length; // Cycle through puzzles
+            loadPuzzles(currentPuzzlesIndex); // Load the new set of puzzles
+        });
+         // Create score display
+    this.add.text(50, 50, 'Score: 0', { font: '20px Arial', fill: '#000000' }).setName('scoreText');
+
+    // Create timer display
+    timerText = this.add.text(50, 80, `Time: ${timer}`, { font: '20px Arial', fill: '#000000' }).setName('timerText');
+
+    // Start the countdown timer
+    this.time.addEvent({
+        delay: 1000, // 1 second
+        callback: updateTimer,
+        callbackScope: this,
+        loop: true
+    });
+
+    // Create a button to save progress
+    const saveButton = this.add.text(650, 80, 'Save Progress', { font: '20px Arial', fill: '#008800' })
+        .setInteractive()
+        .on('pointerdown', saveProgress); // Bind save function to click
+}
+
+function update() {
+  // Game update logic
+  if (timer <= 0) {
+    // Stop the game if the timer runs out
+    this.scene.pause(); // Pause the game or you can implement an end screen
+    alert('Time is up! Your final score is: ' + score);
+}
 }
 
 function loadPuzzles(index) {
@@ -51,23 +101,6 @@ function loadPuzzles(index) {
     fillGridWithWords(grid, currentPuzzles); // Fill the grid with new words
     renderGrid(this, grid); // Render the new grid
     createInputFields(this, currentPuzzles); // Create input fields for new puzzles
-}
-
-// In the create function, replace the direct call to render
-function create() {
-    loadPuzzles(currentPuzzlesIndex);
-    
-    // Add a button to switch puzzle sets
-    const switchButton = this.add.text(650, 50, 'Switch Puzzle', { font: '20px Arial', fill: '#0000FF' })
-        .setInteractive()
-        .on('pointerdown', () => {
-            currentPuzzlesIndex = (currentPuzzlesIndex + 1) % puzzlesSets.length; // Cycle through puzzles
-            loadPuzzles(currentPuzzlesIndex); // Load the new set of puzzles
-        });
-}
-
-function update() {
-  // Game update logic
 }
 
 function fillGridWithWords(grid, puzzles) {
@@ -153,13 +186,96 @@ function createInputFields(scene, puzzles) {
 function checkGuess(userInput, correctWord, inputField) {
   if (userInput.toUpperCase() === correctWord) {
     inputField.setStyle({ backgroundColor: "#a0e1a0" }); // Green for correct guess
+    handleCorrectGuess(inputField); // Trigger correct guess effects// Update score dis
   } else {
     // Change input background color based on the guess
     inputField.setStyle({ backgroundColor: "#e1a0a0" }); // Red for incorrect guess
+    handleIncorrectGuess(inputField); // Trigger incorrect guess effects
 
     // Optionally, you can provide more feedback, such as highlighting letters when guessed correctly
     provideFeedback(correctWord, userInput);
   }
+}
+
+// Function to handle correct guesses
+function handleCorrectGuess(inputField) {
+    // Play sound for correct guess
+    correctSound.play();
+
+    // Create rainbow particles for correct guess
+    const particles = this.add.particles('rainbow'); // Create a particle emitter
+
+    const emitter = particles.createEmitter({
+        speed: { min: 100, max: 200 },
+        scale: { start: 1, end: 0 },
+        lifespan: 3000,
+        on: true,
+        quantity: 10, // Number of particles emitted
+        gravityY: 200,
+        blendMode: 'ADD'
+    });
+
+    // Position particles at the input field's position
+    emitter.setPosition(inputField.x + inputField.width / 2, inputField.y + inputField.height / 2); 
+}
+
+// Function to handle incorrect guesses
+function handleIncorrectGuess(inputField) {
+    // Play sound for incorrect guess
+    incorrectSound.play();
+
+    // Create explosion particles for incorrect guess
+    const particles = this.add.particles('explosion'); // Create a particle emitter
+
+    const emitter = particles.createEmitter({
+        speed: { min: 50, max: 100 },
+        scale: { start: 0.5, end: 0 },
+        lifespan: 500, // Short lifespan for quick explosions
+        on: true,
+        quantity: 15, // Number of particles emitted
+        gravityY: 150,
+        blendMode: 'SCREEN' // Change blend mode to 'SCREEN' for explosion effect
+    });
+
+    // Position particles at the input field's position
+    emitter.setPosition(inputField.x + inputField.width / 2, inputField.y + inputField.height / 2); 
+}
+
+// Function to update the timer and handle end of time
+function updateTimer() {
+    if (timer > 0) {
+        timer -= 1; // Decrease timer by 1 second
+        const timerText = this.children.getByName('timerText'); // Get the timer display
+        timerText.setText(`Time: ${timer}`); // Update timer display
+    } else {
+        this.scene.pause(); // Pause the game when time runs out
+        alert('Time is up! Your final score is: ' + score); // Show final score
+    }
+}
+
+// Save player progress (score and timer) to localStorage
+function saveProgress() {
+    const progress = {
+        score: score,
+        timer: timer,
+        currentPuzzlesIndex: currentPuzzlesIndex
+    };
+    localStorage.setItem('crosswordGameProgress', JSON.stringify(progress)); // Save progress as a JSON string
+}
+
+// Load player progress from localStorage
+function loadProgress() {
+    const progressString = localStorage.getItem('crosswordGameProgress'); // Get saved progress
+    if (progressString) {
+        const progress = JSON.parse(progressString); // Parse JSON string to object
+        score = progress.score; // Load score
+        timer = progress.timer; // Load timer
+        currentPuzzlesIndex = progress.currentPuzzlesIndex; // Load current puzzle set index
+        
+        // Update the score and timer text displays
+        this.children.getByName('scoreText').setText('Score: ' + score);
+        timerText.setText(`Time: ${timer}`);
+    }
 }
 
 function provideFeedback(correctWord, userInput) {
@@ -172,3 +288,6 @@ function provideFeedback(correctWord, userInput) {
     }
   }
 }
+
+// Start the Phaser game
+const game = new Phaser.Game(config);

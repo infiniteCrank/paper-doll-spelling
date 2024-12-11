@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crossword Game with Auth</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="http://localhost:8080/node_modules/phaser/dist/phaser.min.js" type="module"></script> <!-- Load Phaser library -->
+    
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -83,14 +85,9 @@
 
       <h1>Crossword Puzzle</h1>
       <div id="crosswordGrid"></div>
-      <!-- Grid for crossword will be rendered here -->
-      <h1>Get Hint</h1>
-      <button id="getHintButton">Get Hint</button>
-      <p id="hintDisplay" style="color: blue"></p>
-      <h1>Timer: <span id="timerDisplay">60</span> seconds</h1>
-      <h1>Score: <span id="scoreDisplay">0</span></h1>
     </div>
     <div id="errorMessage" style="color: red"></div>
     <script src="script.js"></script>
+    <script src="crossword.js"></script>
   </body>
 </html>
