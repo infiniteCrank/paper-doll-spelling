@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"paper-doll-spelling/auth"
 
-	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -83,11 +82,13 @@ func getWordsHandler(db *sql.DB) http.HandlerFunc {
 func main() {
 	db := initDB()
 	defer db.Close()
-
-	r := mux.NewRouter()
-	r.HandleFunc("/login", auth.LoginHandler).Methods("POST")
-	r.HandleFunc("/words", addWordHandler(db)).Methods("POST")
-	r.HandleFunc("/words", getWordsHandler(db)).Methods("GET")
-
-	http.ListenAndServe(":8000", r)
+	http.Handle("/", http.FileServer(http.Dir("./public"))) // Serve client files
+	http.HandleFunc("POST /login", auth.LoginHandler)
+	http.HandleFunc("POST /words", addWordHandler(db))
+	http.HandleFunc("GET /words", getWordsHandler(db))
+	log.Println("Server started on :8080")
+	err := http.ListenAndServe(":8080", nil) // Start listening on port 8080
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err) // Log any errors starting the server
+	}
 }

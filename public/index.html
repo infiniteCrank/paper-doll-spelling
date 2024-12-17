@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Basic Platform Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.87.0/dist/phaser.js"></script>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script>
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 300 }, // Added gravity for jumping
+                    debug: false
+                }
+            },
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        const game = new Phaser.Game(config);
+
+        function preload() {
+            this.load.image('sky', 'assets/Back_City.png'); // Background
+            this.load.image('ground', 'assets/Platform.png'); // Ground
+            this.load.image('star', 'assets/coin.png'); // Star collectible
+            this.load.spritesheet('dude', 'assets/coin.png', { frameWidth: 32, frameHeight: 48 }); // Player sprite
+        }
+
+        function create() {
+            this.add.image(400, 300, 'sky');
+
+            const platforms = this.physics.add.staticGroup();
+
+            platforms.create(400, 500, 'ground').setScale(1).refreshBody();
+
+            const player = this.physics.add.sprite(100, 450, 'dude');
+
+            player.setBounce(0.2);
+            player.setCollideWorldBounds(true);
+
+            this.physics.add.collider(player, platforms);
+
+            const stars = this.physics.add.group({
+                key: 'star',
+                repeat: 5,
+                setXY: { x: 12, y: 0, stepX: 110 }
+            });
+
+            stars.children.iterate(star => {
+                star.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+            });
+
+            this.physics.add.collider(stars, platforms);
+
+            // Input handling
+            this.input.keyboard.on('keydown-LEFT', () => {
+                player.setVelocityX(-160);
+            });
+
+            this.input.keyboard.on('keydown-RIGHT', () => {
+                player.setVelocityX(160);
+            });
+
+            this.input.keyboard.on('keyup-LEFT', () => {
+                player.setVelocityX(0);
+            });
+
+            this.input.keyboard.on('keyup-RIGHT', () => {
+                player.setVelocityX(0);
+            });
+
+            // Jump logic
+            this.input.keyboard.on('keydown-UP', () => {
+              if (player.body.touching.down) { // Ensure the character is on the ground
+                    player.setVelocityY(-330);
+              }
+            });
+        }
+
+        function update() {
+            // Update logic can be added here if needed
+        }
+    </script>
+</body>
+</html>
